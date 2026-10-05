@@ -1,0 +1,332 @@
+@import "tailwindcss";
+  @theme {
+    /* ========== Fonts ========== */
+    --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    /* ========== Colors ========== */
+    --color-page: #F7F6F3;
+    --color-card: #FFFFFF;
+    --color-line: #E4E2DD;
+    --color-ink: #1A1A1A;
+    --color-body: #45443F;
+    --color-muted: #6B6A65;
+    --color-accent: #B91C1C;
+    --color-accent-hover: #991B1B;
+    --color-accent-soft: #FDECEC;
+
+    /* ========== Shadows ========== */
+    --shadow-card: 0 1px 2px rgb(26 26 26 / 0.04), 0 4px 16px rgb(26 26 26 / 0.04);
+    --shadow-card-hover: 0 2px 4px rgb(26 26 26 / 0.05), 0 12px 32px rgb(26 26 26 /0.08);
+  }
+
+/* Lets the browser animate an angle (needed for the neon border) */
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ========== Base ========== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem; /* navbar height, so anchors don't hide under it */
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-body);
+    background: var(--color-page);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  h1 {
+    font-size: clamp(2.25rem, 5vw + 1rem, 4.5rem);
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: clamp(1.75rem, 3vw + 1rem, 3rem);
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    color: #fff;
+    background: var(--color-accent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+/* ========== Components ========== */
+@layer components {
+  /* Small label above section titles: —— ABOUT / WHAT I BRING */
+  .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+    color: var(--color-accent);
+  }
+
+  .section-kicker::before {
+    content: "";
+    width: 1.5rem;
+    height: 2px;
+    background: currentColor;
+  }
+
+  /* Accessibility: "Skip to content" link, visible only on keyboard focus */
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 100;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background: var(--color-ink);
+    color: #fff;
+    font-weight: 600;
+    transition: top 150ms ease;
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+
+  /* Used by Reveal.jsx */
+  .section-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 600ms ease, transform 600ms ease;
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .section-reveal-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---- Background: grid + light following the mouse ---- */
+  .page-backdrop {
+    --mx: 50vw;   /* mouse X (updated by JS) */
+    --my: -10vh;  /* mouse Y (starts above the screen = light at the top) */
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* Layer 1: faint grid, strong at the top, fading downward */
+  .page-backdrop::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+  }
+
+  /* Layer 2: red grid lines, visible only around the mouse */
+  .page-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgb(185 28 28 / 0.22) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(185 28 28 / 0.22) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(220px circle at var(--mx) var(--my), #000 0%, transparent 70%);
+  }
+
+  /* Layer 3: soft light at the top + glow following the mouse */
+  .page-backdrop__glow {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(600px circle at var(--mx) var(--my), rgb(185 28 28 / 0.07), transparent 60%),
+      radial-gradient(1000px 500px at 50% -10%, #fff, transparent 70%);
+  }
+
+  /* ---- Neon border on hover ---- */
+  .card-neon {
+    position: relative;
+    border: 1px solid var(--color-line);
+    border-radius: 1.25rem;
+    background: var(--color-card);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 300ms ease;
+  }
+
+  .card-neon::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1.5px;                 /* border thickness: thinner line */
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--border-angle),
+      transparent 0% 78%,
+      var(--color-accent) 90%,
+      #F87171 95%,
+      transparent 100%
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    filter: drop-shadow(0 0 3px rgb(185 28 28 / 0.5));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+
+  .card-neon:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .card-neon:hover::before {
+    opacity: 1;
+    animation: border-spin 2.5s linear infinite;
+  }
+
+  /* ---- 3D tilt card ---- */
+  .tilt {
+    --rx: 0deg;
+    --ry: 0deg;
+    --tz: 0px;    /* push the whole card back */
+    --ox: 50%;
+    --oy: 50%;
+    --px: 50%;
+    --py: 50%;
+    perspective: 1000px;
+    animation: card-float 6s ease-in-out infinite;
+  }
+
+  .tilt__inner {
+    transform: translateZ(var(--tz)) rotateX(var(--rx)) rotateY(var(--ry));
+    transform-origin: var(--ox) var(--oy);
+    transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  /* When the mouse leaves: come back slowly and smoothly */
+  .tilt.is-idle .tilt__inner {
+    transition:
+      transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform-origin 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Light that follows the mouse inside the card */
+  .tilt-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      420px circle at var(--px) var(--py),
+      rgb(185 28 28 / 0.09),
+      transparent 45%
+    );
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+  }
+
+  .tilt:hover .tilt-glow {
+    opacity: 1;
+  }
+}
+
+@keyframes card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes border-spin {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+
+/* ========== Reduced motion ========== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .section-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* No mouse (phones): hide the mouse-following layer */
+@media (hover: none) {
+  .page-backdrop::after {
+    display: none;
+  }
+}
+
